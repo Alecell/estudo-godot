@@ -5,7 +5,7 @@ using Godot;
 public partial class Player : CharacterBody3D
 {
     [Export]
-    private float Speed { get; set; } = 15f;
+    private float Speed { get; set; } = 8f;
     private const float JumpVelocity = 10f;
 
     private PathMovement pathMovement;
@@ -32,19 +32,19 @@ public partial class Player : CharacterBody3D
     }
     public override void _PhysicsProcess(double delta)
     {
-        if (!IsOnFloor())
+        if (!pathMovement.IsOnGround)
         {
+            GD.Print("Player is not on the ground");
             Velocity += gravity * (float)delta;
         }
 
-        if (Input.IsActionJustPressed("jump") && IsOnFloor())
+        if (Input.IsActionJustPressed("jump") && pathMovement.IsOnGround)
         {
             Velocity = new Vector3(Velocity.X, JumpVelocity, Velocity.Z);
         }
 
         float inputDir = Input.GetAxis("move-left", "move-right");
 
-
-        pathMovement.Move(Speed * inputDir * (float)delta); 
+        pathMovement.Move(Speed * inputDir, (float)delta); 
     }
 }

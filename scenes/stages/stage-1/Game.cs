@@ -7,7 +7,7 @@ public partial class Game : Node3D
 
     public override void _Ready()
     {
-        _path3D = GetNode<Path3D>("Path3D");
+        _path3D = GetNode<Path3D>("Path3D2");
 
 
         Store.Instance.PathManager.SetPaths(new Dictionary<string, Path3D>
