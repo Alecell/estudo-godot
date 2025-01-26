@@ -44,7 +44,8 @@ public partial class Player : Area3D
         physics.ShouldFaceOrientation = true;
 		// if (!IsOnFloor()) // TODO: physics.IsOnFloor
 		// {
-            forceManager.AddOnForce(gravity, KnownForces.Gravity);
+            if (!physics.State.Ground.Colliding) forceManager.AddOnForce(gravity, KnownForces.Gravity);
+            if (physics.State.Ground.WillCollide || physics.State.Ground.Colliding) forceManager.RemoveForce(KnownForces.Gravity);
 			// Velocity += gravity * (float)delta;
 			/** 
 			TODO: 
@@ -72,7 +73,7 @@ public partial class Player : Area3D
         }
 
 
-		physics.Move();
+        physics.Move();
 		// TODO: physics.Move(delta) precisa do delta?
 	}
 }

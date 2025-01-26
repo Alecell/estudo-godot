@@ -34,5 +34,10 @@ namespace PhysicsUtils
             }
             return result;
         }
+
+        public void RemoveForce(string key)
+        {
+            forces.Remove(key);
+        }
     }
 }

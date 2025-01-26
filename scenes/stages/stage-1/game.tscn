@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://dy7dn5w8hho85"]
+[gd_scene load_steps=13 format=3 uid="uid://dy7dn5w8hho85"]
 
 [ext_resource type="Script" path="res://scenes/stages/stage-1/Game.cs" id="1_hd1cd"]
 [ext_resource type="PackedScene" uid="uid://bfwh1bt3fcdsa" path="res://scenes/nodes/player/player.tscn" id="1_v17n2"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://d4it1eoigftyr" path="res://scenes/stages/stage-2/stage-2-model.glb" id="4_8j4d5"]
 [ext_resource type="Script" path="res://scenes/stages/stage-2/Path3d2.cs" id="5_414wa"]
 [ext_resource type="Script" path="res://scenes/stages/stage-1/Path3d3.cs" id="6_qpryo"]
+[ext_resource type="Script" path="res://addons/debug_camera/scripts/DebugCamera3D.gd" id="7_d27i2"]
 
 [sub_resource type="Curve3D" id="Curve3D_mmod8"]
 bake_interval = 10.0
@@ -51,7 +52,7 @@ point_count = 21
 script = ExtResource("1_hd1cd")
 
 [node name="Player" parent="." instance=ExtResource("1_v17n2")]
-transform = Transform3D(0.437939, 0, 0.0539739, 0, 0.441253, 0, -0.0539739, 0, 0.437939, 38.7383, 8.33607, 30.9399)
+transform = Transform3D(0.437939, 0, 0.0539739, 0, 0.441253, 0, -0.0539739, 0, 0.437939, 38.5581, 7.36659, 30.2925)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.979039, 0.203008, -0.0164519, -0.17882, 0.895428, 0.407716, 0.097501, -0.396228, 0.912961, 23.9639, 24.762, 29.5894)
@@ -94,7 +95,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57.855, 0, 22.456)
 curve = SubResource("Curve3D_r1aer")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(-0.1825, -0.552159, 0.81352, -0.0154312, 0.828922, 0.559151, -0.983085, 0.0894915, -0.159799, 42.8742, 9.24895, 29.9681)
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 42.5371, 5.49715, 30.2925)
+script = ExtResource("7_d27i2")
 
 [editable path="ground"]
 [editable path="Node3D/stage-2-model"]

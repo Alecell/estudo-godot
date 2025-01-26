@@ -27,10 +27,6 @@ gdscript/warnings/unsafe_method_access=2
 gdscript/warnings/unsafe_cast=2
 gdscript/warnings/unsafe_call_argument=2
 
-[display]
-
-window/size/always_on_top=true
-
 [dotnet]
 
 project/assembly_name="Estudo2"

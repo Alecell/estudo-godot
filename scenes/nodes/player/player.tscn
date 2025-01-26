@@ -6,7 +6,7 @@
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ctgrm"]
 
 [node name="Player" type="Area3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.02357, 0)
+transform = Transform3D(1.67, 0, 0, 0, 1.67, 0, 0, 0, 1.67, 0, 1.02357, 0)
 script = ExtResource("1_k7g3i")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
