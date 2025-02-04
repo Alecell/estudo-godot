@@ -3,93 +3,64 @@ using Godot;
 
 namespace PhysicsUtils
 {
+    public enum ForceComponent
+    {
+        INVALID = -1,
+        HORIZONTAL,
+        VERTICAL,
+        LONGITUDINAL
+    }
+
     public partial class RelativeDirection
     {
-        public float Horizontal { get; set; }
-        public float Vertical { get; set; }
-        public float Longitudinal { get; set; }
+        public Direction Horizontal { get; set; }
+        public Direction Vertical { get; set; }
+        public Direction Longitudinal { get; set; }
 
-        public RelativeDirection(float horizontal, float vertical, float longitudinal)
+        public RelativeDirection(
+            object horizontal = null,
+            object vertical = null,
+            object longitudinal = null
+        )
         {
-            Horizontal = horizontal;
-            Vertical = vertical;
-            Longitudinal = longitudinal;
+            Horizontal = ConvertToDirection(horizontal, nameof(horizontal));
+            Vertical = ConvertToDirection(vertical, nameof(vertical));
+            Longitudinal = ConvertToDirection(longitudinal, nameof(longitudinal));
         }
 
-        // Soma de dois RelativeDirection
-        public static RelativeDirection operator +(RelativeDirection a, RelativeDirection b) =>
-            new RelativeDirection(a.Horizontal + b.Horizontal, a.Vertical + b.Vertical, a.Longitudinal + b.Longitudinal);
-
-        // Subtração de dois RelativeDirection
-        public static RelativeDirection operator -(RelativeDirection a, RelativeDirection b) =>
-            new RelativeDirection(a.Horizontal - b.Horizontal, a.Vertical - b.Vertical, a.Longitudinal - b.Longitudinal);
-
-        // Multiplicação por escalar
-        public static RelativeDirection operator *(RelativeDirection a, float scalar) =>
-            new RelativeDirection(a.Horizontal * scalar, a.Vertical * scalar, a.Longitudinal * scalar);
-
-        public static RelativeDirection operator *(float scalar, RelativeDirection a) => a * scalar;
-
-        // Divisão por escalar
-        public static RelativeDirection operator /(RelativeDirection a, float scalar) =>
-            scalar == 0 ? throw new DivideByZeroException() : new RelativeDirection(a.Horizontal / scalar, a.Vertical / scalar, a.Longitudinal / scalar);
-
-        // Módulo (resto da divisão)
-        public static RelativeDirection operator %(RelativeDirection a, float scalar) =>
-            new RelativeDirection(a.Horizontal % scalar, a.Vertical % scalar, a.Longitudinal % scalar);
-
-        // Operador de igualdade ==
-        public static bool operator ==(RelativeDirection a, RelativeDirection b) =>
-            a.Horizontal == b.Horizontal && a.Vertical == b.Vertical && a.Longitudinal == b.Longitudinal;
-
-        // Operador de diferença !=
-        public static bool operator !=(RelativeDirection a, RelativeDirection b) => !(a == b);
-
-        // Operador unário negativo
-        public static RelativeDirection operator -(RelativeDirection a) =>
-            new RelativeDirection(-a.Horizontal, -a.Vertical, -a.Longitudinal);
-
-        // Operador unário positivo (redundante, mas útil)
-        public static RelativeDirection operator +(RelativeDirection a) => a;
-
-        // Incremento (++)
-        public static RelativeDirection operator ++(RelativeDirection a)
+        public static RelativeDirection Zero()
         {
-            a.Horizontal++;
-            a.Vertical++;
-            a.Longitudinal++;
-            return a;
+            return new RelativeDirection(
+                new Direction(0),
+                new Direction(0),
+                new Direction(0)
+            );
+        }
+        public bool IsZero(ForceComponent component = ForceComponent.INVALID)
+        {
+            if (component == ForceComponent.INVALID)
+            {
+                return Math.Abs(Horizontal.Force) <= 0.01f &&
+                       Math.Abs(Vertical.Force) <= 0.01f &&
+                       Math.Abs(Longitudinal.Force) <= 0.01f;
+            }
+
+            return component switch
+            {
+                ForceComponent.HORIZONTAL => Math.Abs(Horizontal.Force) <= 0.01f,
+                ForceComponent.VERTICAL => Math.Abs(Vertical.Force) <= 0.01f,
+                ForceComponent.LONGITUDINAL => Math.Abs(Longitudinal.Force) <= 0.01f,
+                _ => false
+            };
         }
 
-        // Decremento (--)
-        public static RelativeDirection operator --(RelativeDirection a)
+        private Direction ConvertToDirection(object value, string paramName)
         {
-            a.Horizontal--;
-            a.Vertical--;
-            a.Longitudinal--;
-            return a;
+            if (value == null) return new Direction(0);
+            if (value is Direction d) return d;
+            if (value is float f) return new Direction(f);
+
+            throw new ArgumentException($"Invalid type for parameter '{paramName}'. Must be 'float' or 'Direction'.");
         }
-
-        // Conversão implícita para Vector3 (Godot)
-        public static implicit operator Vector3(RelativeDirection a) =>
-            new Vector3(a.Horizontal, a.Vertical, a.Longitudinal);
-
-        // Conversão explícita de Vector3 para RelativeDirection
-        public static explicit operator RelativeDirection(Vector3 v) =>
-            new RelativeDirection((float)v.X, (float)v.Y, (float)v.Z);
-
-        // Override de Equals e GetHashCode (boa prática para classes com sobrecarga de == e !=)
-        public override bool Equals(object obj) =>
-            obj is RelativeDirection other && this == other;
-
-        // Override GetHashCode method
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Horizontal.GetHashCode(), Vertical.GetHashCode(), Longitudinal.GetHashCode());
-        }
-
-        // Representação em string
-        public override string ToString() =>
-            $"RelativeDirection(Horizontal: {Horizontal}, Vertical: {Vertical}, Longitudinal: {Longitudinal})";
     }
 }

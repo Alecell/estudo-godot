@@ -1,43 +1,40 @@
 using System;
-using System.Collections.Generic;
 using Godot;
 
 namespace PhysicsUtils
-    {
+{
     public partial class ForceManager
     {
-        private readonly Dictionary<string, Force> forces = new();
+        public readonly Force internalForce = new();
+        public readonly Force externalForce = new();
 
-        public string AddForce(RelativeDirection forces, string key = null)
+        public RelativeDirection ComputeForces(RelativeDirection frictionCoefficient)
         {
-            Force force = new(forces, key);
-            this.forces.Add(force.key, force);
-            return force.key;
+            var finalResultant = internalForce + externalForce;
+
+            if (finalResultant.IsZero()) return RelativeDirection.Zero();
+
+            var proportionInternal = GetProportion(internalForce, finalResultant);
+            var proportionExternal = GetProportion(externalForce, finalResultant);
+
+            internalForce.ApplyFriction(frictionCoefficient * proportionInternal);
+            externalForce.ApplyFriction(frictionCoefficient * proportionExternal);
+
+            return internalForce + externalForce;
         }
 
-        public void AddOnForce(RelativeDirection forces, string key)
+        private static RelativeDirection GetProportion(RelativeDirection individualForce, RelativeDirection totalForce)
         {
-            if (this.forces.ContainsKey(key))
-            {
-                this.forces[key].force += forces;
-            } else {
-                AddForce(forces, key);
-            }
+            return new RelativeDirection(
+                GetProportionAxis(individualForce.Horizontal.Force, totalForce.Horizontal.Force),
+                GetProportionAxis(individualForce.Vertical.Force, totalForce.Vertical.Force),
+                GetProportionAxis(individualForce.Longitudinal.Force, totalForce.Longitudinal.Force)
+            );
         }
 
-        public RelativeDirection ComputeForces()
+        private static float GetProportionAxis(float individualForce, float totalForce)
         {
-            RelativeDirection result = new(0, 0, 0);
-            foreach (var force in forces.Values)
-            {
-                result += force.force;
-            }
-            return result;
-        }
-
-        public void RemoveForce(string key)
-        {
-            forces.Remove(key);
+            return (Math.Abs(totalForce) < 0.001f) ? 0 : individualForce / totalForce;
         }
     }
 }

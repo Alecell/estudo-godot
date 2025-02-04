@@ -4,19 +4,20 @@ using PhysicsRays;
 
 namespace PhysicsUtils
 {
-    public class GroundRaysState 
+    public class GroundRaysState
     {
         public bool Colliding { get; private set; }
         public bool WillCollide { get; private set; }
         public readonly Dictionary<string, Dictionary<string, RayParameters>> Rays;
 
         public GroundRaysState(
-            bool colliding, 
+            bool colliding,
             bool willCollide,
             RayParameters BottomFrontDownRay,
             RayParameters BottomMiddleDownRay,
             RayParameters BottomBackDownRay
-        ) {
+        )
+        {
             Colliding = colliding;
             WillCollide = willCollide;
             Rays = new() {
@@ -58,7 +59,8 @@ namespace PhysicsUtils
             AttachBottomRaycast();
         }
 
-        public GroundRaysState EvaluateCollisions() {
+        public GroundRaysState EvaluateCollisions()
+        {
             RayParameters bottomFrontDownRayParameters = new(
                 BottomFrontDownRay.IsColliding(),
                 BottomFrontDownRay.GlobalTransform.Origin.DistanceTo(BottomFrontDownRay.GetCollisionPoint()),
@@ -78,7 +80,7 @@ namespace PhysicsUtils
             );
 
             return new GroundRaysState(
-                IsColliding(bottomFrontDownRayParameters, bottomMiddleDownRayParameters, bottomBackDownRayParameters), 
+                IsColliding(bottomFrontDownRayParameters, bottomMiddleDownRayParameters, bottomBackDownRayParameters),
                 WillCollide(bottomFrontDownRayParameters, bottomMiddleDownRayParameters, bottomBackDownRayParameters),
                 bottomFrontDownRayParameters,
                 bottomMiddleDownRayParameters,
@@ -86,16 +88,18 @@ namespace PhysicsUtils
             );
         }
 
-    private bool IsColliding(
-        RayParameters bottomFrontDownRayParameters, 
-        RayParameters bottomMiddleDownRayParameters, 
-        RayParameters bottomBackDownRayParameters
-    ) {
+        private bool IsColliding(
+            RayParameters bottomFrontDownRayParameters,
+            RayParameters bottomMiddleDownRayParameters,
+            RayParameters bottomBackDownRayParameters
+        )
+        {
             bool isColliding = bottomFrontDownRayParameters.Colliding ||
                             bottomMiddleDownRayParameters.Colliding ||
                             bottomBackDownRayParameters.Colliding;
 
-            if (isColliding) {
+            if (isColliding)
+            {
                 float frontDistance = bottomFrontDownRayParameters.Colliding
                     ? bottomFrontDownRayParameters.Distance
                     : float.MaxValue;
@@ -104,7 +108,7 @@ namespace PhysicsUtils
                     ? bottomMiddleDownRayParameters.Distance
                     : float.MaxValue;
 
-                float backDistance = bottomBackDownRayParameters.Colliding 
+                float backDistance = bottomBackDownRayParameters.Colliding
                     ? bottomBackDownRayParameters.Distance
                     : float.MaxValue;
 
@@ -117,27 +121,32 @@ namespace PhysicsUtils
         }
 
         private bool WillCollide(
-            RayParameters bottomFrontDownRayParameters, 
-            RayParameters bottomMiddleDownRayParameters, 
+            RayParameters bottomFrontDownRayParameters,
+            RayParameters bottomMiddleDownRayParameters,
             RayParameters bottomBackDownRayParameters
-        ) {
+        )
+        {
             bool willCollide = false;
 
-            if (physics.Velocities.Vertical != 0)
+            if (!physics.Velocities.IsZero(ForceComponent.VERTICAL))
             {
-                float positionDisplacement = physics.Velocities.Vertical * physics.Delta;
+                float positionDisplacement = physics.Velocities.Vertical.Force * physics.Delta;
                 float lowestColliderPointGlobal = physics.entity.GlobalTransform.Origin.Y - physics.entitySize.Y / 2;
-                float nextLowestColliderPointGlobal = lowestColliderPointGlobal - Mathf.Abs(positionDisplacement);
-                
-                if (bottomMiddleDownRayParameters.Colliding) {
+                float nextLowestColliderPointGlobal = lowestColliderPointGlobal - positionDisplacement * -1;
+
+                if (bottomMiddleDownRayParameters.Colliding)
+                {
                     willCollide = nextLowestColliderPointGlobal <= bottomMiddleDownRayParameters.CollisionPoint.Y;
-                } else {
-                    if (bottomFrontDownRayParameters.Colliding) {
-                        willCollide = nextLowestColliderPointGlobal <= bottomFrontDownRayParameters.CollisionPoint.Y;
-                    } 
-                    
-                    if (bottomBackDownRayParameters.Colliding) {
+                }
+                else
+                {
+                    if (bottomFrontDownRayParameters.Distance > bottomBackDownRayParameters.Distance)
+                    {
                         willCollide = nextLowestColliderPointGlobal <= bottomBackDownRayParameters.CollisionPoint.Y;
+                    }
+                    else
+                    {
+                        willCollide = nextLowestColliderPointGlobal <= bottomFrontDownRayParameters.CollisionPoint.Y;
                     }
                 }
             }
@@ -145,7 +154,8 @@ namespace PhysicsUtils
             return willCollide;
         }
 
-        private void AttachBottomRaycast() {
+        private void AttachBottomRaycast()
+        {
             var yPosition = physics.entity.GlobalTransform.Origin.Y + physics.entitySize.Y / 2;
             var xPosition = physics.entity.GlobalTransform.Origin.X;
             var zPosition = physics.entity.GlobalTransform.Origin.Z;
@@ -183,5 +193,5 @@ namespace PhysicsUtils
                 new Vector3(xPosition, yPosition, zPosition + physics.entitySize.Z / 2)
             );
         }
-    } 
+    }
 }
