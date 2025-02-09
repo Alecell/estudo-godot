@@ -35,6 +35,19 @@ public partial class Physics
      essa cena define um path, um position no path e qual path ela vai, assim posicionar o player
      baseado nisso aqui na linha Store.Instance.PathManager.FindPath("start");, ja que no momento
      o path é mockado
+
+     * TODO: Preciso arrumar que quando eu saio de uma plataforma andando eu sou snapado no chão automaticamente
+     parece que isso é pq do tamanho do ray que eu tinha em baixo de mim, mas pode não ser. Preciso investigar.
+     Acho que isso ta acontecendo pq do slope.
+
+     * TODO: Preciso resolver o problema de que quando eu estou em baixo de uma one way platform e tento pular
+     sou automaticamente snapado para o topo da plataforma. Isso acontece porque de como funciona o snap. Talvez
+     a soluçào desse tipo de coisa seja classificar a plataforma como one way ou fazer alguma verificação de
+     velocidade negativa porque, de qualquer forma, eu não quero ser snapado quando eu estou com velocidade positiva.
+     Pensei aqui, isso pode ser resolvido com 2 coisas. Uma é colocar os rays praticamente no pé do player, assim
+     eu evito que ele snape no topo de uma plataforma que ele ainda não alcançou e ai eu posso fazer a verificação
+     de se a velocidade é negativa. Entào acredito que pra resolver isso eu preciso mudar a posição dos rays e fazer
+     a verificação de velocidade negativa
      */
 
 
@@ -58,15 +71,14 @@ public partial class Physics
 
      * TODO: Fazer a emissão de eventos
      */
-    public void Apply()
+    public void Execute()
     {
         Velocities = forceManager.ComputeForces(new RelativeDirection(0.1f, 0.1f, 0.1f));
-        GD.Print(Velocities.Horizontal.Force, " ", Velocities.Vertical.Force);
         entity.GlobalTransform = ApplyVelocityBasedPositioning();
 
         var groundState = physicsGroundRays.EvaluateCollisions();
 
-        State.Ground.Colliding = groundState.Colliding || groundState.WillCollide;
+        State.Ground.Colliding = groundState.Colliding;
         State.Ground.WillCollide = groundState.WillCollide;
 
         if (groundState.WillCollide)
@@ -86,7 +98,7 @@ public partial class Physics
     private Transform3D ApplyVelocityBasedPositioning()
     {
         var globalNextPathPoint = HorizontalPathMovement();
-        var nextEntityPositionY = entity.GlobalTransform.Origin.Y + Velocities.Vertical.Force * Delta;
+        var nextEntityPositionY = VerticalPathMovement(globalNextPathPoint);
 
         return new Transform3D(
             entity.GlobalTransform.Basis,
@@ -116,6 +128,38 @@ public partial class Physics
         }
 
         return globalNextPointOnCurve;
+    }
+
+    private float VerticalPathMovement(Vector3 globalNextPointOnCurve)
+    {
+        var nextEntityPositionY = entity.GlobalTransform.Origin.Y + Velocities.Vertical.Force * Delta;
+
+        if (State.Ground.Colliding)
+        {
+            var slopeRay = physicsGroundRays.SlopeDownRay;
+            slopeRay.GlobalTransform = new Transform3D(
+                physicsGroundRays.SlopeDownRay.GlobalTransform.Basis,
+                new Vector3(
+                    globalNextPointOnCurve.X,
+                    entity.GlobalTransform.Origin.Y + entitySize.Y / 2,
+                    globalNextPointOnCurve.Z
+                )
+            );
+
+            if (slopeRay.IsColliding())
+            {
+                var collisionPoint = slopeRay.GetCollisionPoint();
+                var distance = slopeRay.GlobalTransform.Origin.DistanceTo(collisionPoint);
+                var groundShift = distance - entitySize.Y;
+
+                if (groundShift != 0)
+                {
+                    nextEntityPositionY -= groundShift;
+                }
+            }
+        }
+
+        return nextEntityPositionY;
     }
 
     private float GetGroundYPosition(GroundRaysState groundState)
@@ -167,6 +211,9 @@ public partial class Physics
         player.LookAt(player.GlobalTransform.Origin + movementDirection, Vector3.Up);
     }
 
+    /**
+     * TODO: Isso poderia ser uma função de utilitária
+     */
     private Vector3 GetCollisionShapeSizes()
     {
         var collisionShape = entity.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");

@@ -5,7 +5,7 @@ public partial class Player : Area3D
 {
     [Export]
     private float Acceleration { get; set; } = 3f;
-    private const float JumpVelocity = 20f;
+    private const float JumpVelocity = 40f;
 
     private Physics physics;
     private readonly RelativeDirection gravity = new RelativeDirection(0f, -1f, 0f);
@@ -23,19 +23,21 @@ public partial class Player : Area3D
     {
         forceManager = new ForceManager();
         physics = new Physics(this, forceManager);
-        forceManager.internalForce.Horizontal.Limit = 10f;
-    }
-    public override void _PhysicsProcess(double delta)
-    {
-        physics.Delta = (float)delta;
         physics.ShouldFaceOrientation = true;
+        forceManager.internalForce.Horizontal.Limit = 10f;
+
+    }
+
+    public override void _Process(double delta)
+    {
         float inputDir = Input.GetAxis("move-left", "move-right");
 
-        if (!physics.State.Ground.Colliding)
-        {
-            forceManager.internalForce.Add(gravity);
-        }
-        if (physics.State.Ground.WillCollide || physics.State.Ground.Colliding)
+        if (!physics.State.Ground.Colliding) forceManager.internalForce.Add(gravity);
+
+        if (
+            (physics.State.Ground.WillCollide || physics.State.Ground.Colliding)
+            && forceManager.internalForce.Vertical.Force < 0
+        )
         {
             forceManager.internalForce.Set(ForceComponent.VERTICAL, 0f);
         }
@@ -49,7 +51,12 @@ public partial class Player : Area3D
         {
             forceManager.internalForce.Add(new RelativeDirection(inputDir * Acceleration));
         }
+    }
 
-        physics.Apply();
+    public override void _PhysicsProcess(double delta)
+    {
+        physics.Delta = (float)delta;
+
+        physics.Execute();
     }
 }

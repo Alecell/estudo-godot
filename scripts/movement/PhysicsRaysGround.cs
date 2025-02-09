@@ -48,15 +48,32 @@ namespace PhysicsUtils
         public RayCast3D BottomFrontDownRay { get; private set; }
         public RayCast3D BottomMiddleDownRay { get; private set; }
         public RayCast3D BottomBackDownRay { get; private set; }
+        public RayCast3D SlopeDownRay { get; private set; }
 
         private readonly Physics physics;
-        private readonly float threshold = 0.01f;
+        private readonly float threshold = 0.05f;
 
         public PhysicsGroundRays(Physics physics)
         {
             this.physics = physics;
 
-            AttachBottomRaycast();
+            AttachTopToBottomRaycast();
+        }
+
+        public RayCast3D CreateRayCast(string name, Vector3 position)
+        {
+            var rayCast = new RayCast3D();
+            rayCast.Name = name;
+            rayCast.TargetPosition = new Vector3(0, -10, 0);
+            rayCast.DebugShapeCustomColor = new Color(1, 0, 0);
+            rayCast.Enabled = true;
+            physics.entity.AddChild(rayCast);
+            rayCast.GlobalTransform = new Transform3D(
+                physics.entity.GlobalTransform.Basis,
+                position
+            );
+
+            return rayCast;
         }
 
         public GroundRaysState EvaluateCollisions()
@@ -128,7 +145,7 @@ namespace PhysicsUtils
         {
             bool willCollide = false;
 
-            if (!physics.Velocities.IsZero(ForceComponent.VERTICAL))
+            if (physics.Velocities.Vertical.Force < 0)
             {
                 float positionDisplacement = physics.Velocities.Vertical.Force * physics.Delta;
                 float lowestColliderPointGlobal = physics.entity.GlobalTransform.Origin.Y - physics.entitySize.Y / 2;
@@ -154,44 +171,16 @@ namespace PhysicsUtils
             return willCollide;
         }
 
-        private void AttachBottomRaycast()
+        private void AttachTopToBottomRaycast()
         {
             var yPosition = physics.entity.GlobalTransform.Origin.Y + physics.entitySize.Y / 2;
             var xPosition = physics.entity.GlobalTransform.Origin.X;
             var zPosition = physics.entity.GlobalTransform.Origin.Z;
 
-            BottomFrontDownRay = new RayCast3D();
-            BottomFrontDownRay.Name = "BottomFrontDownRay";
-            BottomFrontDownRay.TargetPosition = new Vector3(0, -10, 0);
-            BottomFrontDownRay.DebugShapeCustomColor = new Color(1, 0, 0);
-            physics.entity.AddChild(BottomFrontDownRay);
-            BottomFrontDownRay.Enabled = true;
-            BottomFrontDownRay.GlobalTransform = new Transform3D(
-                physics.entity.GlobalTransform.Basis,
-                new Vector3(xPosition, yPosition, zPosition + physics.entitySize.Z / -2)
-            );
-
-            BottomMiddleDownRay = new RayCast3D();
-            BottomMiddleDownRay.Name = "BottomMiddleDownRay";
-            BottomMiddleDownRay.TargetPosition = new Vector3(0, -10, 0);
-            BottomMiddleDownRay.DebugShapeCustomColor = new Color(1, 0, 0);
-            physics.entity.AddChild(BottomMiddleDownRay);
-            BottomMiddleDownRay.Enabled = true;
-            BottomMiddleDownRay.GlobalTransform = new Transform3D(
-                physics.entity.GlobalTransform.Basis,
-                new Vector3(xPosition, yPosition, zPosition)
-            );
-
-            BottomBackDownRay = new RayCast3D();
-            BottomBackDownRay.Name = "BottomBackDownRay";
-            BottomBackDownRay.TargetPosition = new Vector3(0, -10, 0);
-            BottomBackDownRay.DebugShapeCustomColor = new Color(1, 0, 0);
-            physics.entity.AddChild(BottomBackDownRay);
-            BottomBackDownRay.Enabled = true;
-            BottomBackDownRay.GlobalTransform = new Transform3D(
-                physics.entity.GlobalTransform.Basis,
-                new Vector3(xPosition, yPosition, zPosition + physics.entitySize.Z / 2)
-            );
+            BottomFrontDownRay = CreateRayCast("BottomFrontDownRay", new Vector3(xPosition, yPosition, zPosition + physics.entitySize.Z / -2));
+            BottomMiddleDownRay = CreateRayCast("BottomMiddleDownRay", new Vector3(xPosition, yPosition, zPosition));
+            BottomBackDownRay = CreateRayCast("BottomBackDownRay", new Vector3(xPosition, yPosition, zPosition + physics.entitySize.Z / 2));
+            SlopeDownRay = CreateRayCast("SlopeDownRay", new Vector3(xPosition, yPosition, zPosition));
         }
     }
 }

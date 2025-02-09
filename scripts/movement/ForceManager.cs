@@ -14,13 +14,9 @@ namespace PhysicsUtils
 
             if (finalResultant.IsZero()) return RelativeDirection.Zero();
 
-            var proportionInternal = GetProportion(internalForce, finalResultant);
-            var proportionExternal = GetProportion(externalForce, finalResultant);
+            DecayForces(finalResultant, frictionCoefficient);
 
-            internalForce.ApplyFriction(frictionCoefficient * proportionInternal);
-            externalForce.ApplyFriction(frictionCoefficient * proportionExternal);
-
-            return internalForce + externalForce;
+            return finalResultant;
         }
 
         private static RelativeDirection GetProportion(RelativeDirection individualForce, RelativeDirection totalForce)
@@ -35,6 +31,15 @@ namespace PhysicsUtils
         private static float GetProportionAxis(float individualForce, float totalForce)
         {
             return (Math.Abs(totalForce) < 0.001f) ? 0 : individualForce / totalForce;
+        }
+
+        private void DecayForces(RelativeDirection finalResultant, RelativeDirection frictionCoefficient)
+        {
+            var proportionInternal = GetProportion(internalForce, finalResultant);
+            var proportionExternal = GetProportion(externalForce, finalResultant);
+
+            internalForce.ApplyFriction(frictionCoefficient * proportionInternal);
+            externalForce.ApplyFriction(frictionCoefficient * proportionExternal);
         }
     }
 }
